@@ -1,0 +1,275 @@
+{
+  "Resources": {
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16"
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {}
+    },
+    "GatewayToInternet": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "PublicSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.1.0/24",
+        "AvailabilityZone": "ap-northeast-1a"
+      }
+    },
+    "PublicRouteTableForPublicSubnet1": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PublicRouteRuleForPublicSubnet1": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTableForPublicSubnet1"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "PublicRouteTableForPublicSubnet1Association": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnet1"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTableForPublicSubnet1"
+        }
+      }
+    },
+    "PublicSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.2.0/24",
+        "AvailabilityZone": "ap-northeast-1c"
+      }
+    },
+    "PublicRouteTableForPublicSubnet2": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PublicRouteRuleForPublicSubnet2": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTableForPublicSubnet2"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "PublicRouteTableForPublicSubnet2Association": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnet2"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTableForPublicSubnet2"
+        }
+      }
+    },
+    "PrivateSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.3.0/24",
+        "AvailabilityZone": "ap-northeast-1a"
+      }
+    },
+    "NatGatewayPublicIPForPrivateSubnet1": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
+    "NatGatewayForPrivateSubnet1": {
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": { 
+          "Fn::GetAtt": ["NatGatewayPublicIPForPrivateSubnet1", "AllocationId"] 
+        },
+        "SubnetId": { 
+          "Ref": "PublicSubnet1" 
+        }
+      }
+    },
+    "PrivateRouteTableForPrivateSubnet1": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PrivateRouteRuleForPrivateSubnet1" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { 
+          "Ref" : "PrivateRouteTableForPrivateSubnet1" 
+        },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "NatGatewayId" : { 
+          "Ref" : "NatGatewayForPrivateSubnet1" 
+        }
+      }
+    },
+    "PrivateRouteTableForPrivateSubnet1Association": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet1"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableForPrivateSubnet1"
+        }
+      }
+    },
+    "PrivateSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.4.0/24",
+        "AvailabilityZone": "ap-northeast-1c"
+      }
+    },
+    "NatGatewayPublicIPForPrivateSubnet2": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
+    "NatGatewayForPrivateSubnet2": {
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": { 
+          "Fn::GetAtt": ["NatGatewayPublicIPForPrivateSubnet2", "AllocationId"] 
+        },
+        "SubnetId": { 
+          "Ref": "PublicSubnet2" 
+        }
+      }
+    },
+    "PrivateRouteTableForPrivateSubnet2": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PrivateRouteRuleForPrivateSubnet2" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { 
+          "Ref" : "PrivateRouteTableForPrivateSubnet2" 
+        },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "NatGatewayId" : { 
+          "Ref" : "NatGatewayForPrivateSubnet2" 
+        }
+      }
+    },
+    "PrivateRouteTableForPrivateSubnet2Association": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet2"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableForPrivateSubnet2"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "VPC": {
+      "Value": {
+        "Ref": "VPC"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-VpcId"
+        }
+      }
+    },
+    "PublicSubnet1": {
+      "Value": {
+        "Ref": "PublicSubnet1"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PublicSubnet1"
+        }
+      }
+    },
+    "PublicSubnet2": {
+      "Value": {
+        "Ref": "PublicSubnet2"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PublicSubnet2"
+        }
+      }
+    },
+    "PrivateSubnet1": {
+      "Value": {
+        "Ref": "PrivateSubnet1"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PrivateSubnet1Id"
+        }
+      }
+    },
+    "PrivateSubnet2": {
+      "Value": {
+        "Ref": "PrivateSubnet2"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PrivateSubnet2Id"
+        }
+      }
+    }
+  }
+}

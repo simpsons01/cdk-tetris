@@ -1,0 +1,72 @@
+{
+  "Resources": {
+    "SecurityGroupForRedisCluster": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "security group for redis cluster",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "CidrIp": "10.0.0.0/16",
+            "ToPort": 6379,
+            "FromPort": 6379
+          }
+        ],
+        "VpcId": {
+          "Fn::ImportValue": "TetrisVpc-VpcId"
+        }
+      }
+    },
+    "SubnetGroupForRedisCluster": {
+      "Type": "AWS::ElastiCache::SubnetGroup",
+      "Properties": {
+        "CacheSubnetGroupName": "redis-cluster-subnet-group",
+        "Description": "subnet group for redis cluster",
+        "SubnetIds": [
+          {
+            "Fn::ImportValue": "TetrisVpc-PrivateSubnet1Id"
+          }
+        ]
+      }
+    },
+    "RedisCluster": {
+      "Type": "AWS::ElastiCache::CacheCluster",
+      "Properties": {
+        "ClusterName": "tetris-redis",
+        "Engine": "redis",
+        "NumCacheNodes": 1,
+        "CacheNodeType": "cache.t3.micro",
+        "CacheSubnetGroupName": {
+          "Ref": "SubnetGroupForRedisCluster"
+        },
+        "VpcSecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupForRedisCluster"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "RedisClusterName": {
+      "Value": {
+        "Ref": "RedisCluster"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-RedisCluster"
+        }
+      }
+    },
+    "RedisClusterAddress": {
+      "Value": {
+        "Fn::GetAtt": ["RedisCluster", "RedisEndpoint.Address"]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-RedisClusterAddress"
+        }
+      }
+    }
+  }
+}

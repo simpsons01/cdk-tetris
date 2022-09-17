@@ -1,14 +1,11 @@
 {
-  "name": "hello-world-cdk",
   "version": "0.1.0",
-  "bin": {
-    "hello-world-cdk": "bin/hello-world-cdk.js"
-  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "destroy": "cdk destroy",
+    "deploy": "cdk deploy --require-approval never"
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",
