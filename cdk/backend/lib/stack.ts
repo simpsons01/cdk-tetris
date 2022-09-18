@@ -17,7 +17,7 @@ export class TetrisBackend extends cdk.Stack {
     });
 
     const WebContainer = taskDefinition.addContainer('web', {
-      image: ecs.ContainerImage.fromEcrRepository(containerRepository, "web_v0.6"),
+      image: ecs.ContainerImage.fromEcrRepository(containerRepository, "web_v0.8"),
       logging: ecs.LogDriver.awsLogs({ streamPrefix: "web" }),
       environment: {
         SESSION_SECRET: process.env.SESSION_SECRET as string,
