@@ -59,7 +59,7 @@ export class TetrisBackend extends cdk.Stack {
     });
     
     listener.addTargets('ECS', {
-      port: 80,
+      protocol: elbv2.ApplicationProtocol.HTTP,
       targets: [
         service.loadBalancerTarget({
           containerName: 'web',
