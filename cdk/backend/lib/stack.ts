@@ -34,7 +34,7 @@ export class TetrisBackend extends cdk.Stack {
     })
 
 
-    const vpc = ec2.Vpc.fromLookup(this, "FromVpc", { vpcId: "vpc-06eeae76af3dfea71" });
+    const vpc = ec2.Vpc.fromLookup(this, "FromVpc", { vpcId: process.env.VPC_ID });
     
     const cluster = new ecs.Cluster(this, 'Cluster', { vpc });
 
