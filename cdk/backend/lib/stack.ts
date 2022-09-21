@@ -40,7 +40,11 @@ export class TetrisBackend extends cdk.Stack {
 
     const service = new ecs.FargateService(this, "Service", {
       cluster,
-      taskDefinition
+      taskDefinition,
+      assignPublicIp: true,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PUBLIC
+      }
     });
     
     const lb = new elbv2.ApplicationLoadBalancer(this, 'LB', {
