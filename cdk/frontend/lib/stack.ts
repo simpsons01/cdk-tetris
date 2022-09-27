@@ -34,5 +34,9 @@ export class TetrisFrontendStack extends cdk.Stack {
       exportName: "TetrisFrontend-CdnDomain",
       value: cloudfrontDistribution.domainName
     })
+    new cdk.CfnOutput(this, "OutputForS3BucketArn", {
+      exportName: "TetrisFrontend-S3BucketArn",
+      value: bucket.bucketArn
+    })
   }
 }
