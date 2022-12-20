@@ -64,10 +64,10 @@ export class TetrisPrivateService extends cdk.Stack {
 
     const networkLoadBalancer = new elbv2.NetworkLoadBalancer(this, 'PrivateServiceNLB', { vpc });
 
-    const listener = networkLoadBalancer.addListener('PrivateServiceNLbListener', { port: 80 });
+    const listener = networkLoadBalancer.addListener('PrivateServiceNLbListener', { port: 8080 });
 
     listener.addTargets("PrivateServiceNLbListenerAddTargets", {
-      port: 80,
+      port: 8080,
       healthCheck: {
         interval: cdk.Duration.seconds(30),
         timeout: cdk.Duration.seconds(5),

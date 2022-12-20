@@ -116,7 +116,7 @@ export class TetrisPublicService extends cdk.Stack {
           DOMAIN: ".old-school-tetris-battle.com",
           REDIS_HOST_URL: cdk.Fn.importValue("TetrisRedisCluster-RedisClusterAddress"),
           REDIS_HOST_PORT:"6379",
-          PRIVATE_API_URL: interfaceVpcEndPoint.vpcEndpointDnsEntries[2]
+          PRIVATE_API_URL: `http://${cdk.Fn.select(0, interfaceVpcEndPoint.vpcEndpointDnsEntries)}:8080`
         }
       },
       fargateService: {

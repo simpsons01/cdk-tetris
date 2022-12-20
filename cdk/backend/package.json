@@ -4,7 +4,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
-    "destroy": "cdk destroy",
+    "destroy": "cdk destroy --all",
     "deploy": "cdk deploy --require-approval never --all"
   },
   "devDependencies": {
