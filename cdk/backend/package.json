@@ -5,7 +5,7 @@
     "watch": "tsc -w",
     "cdk": "cdk",
     "destroy": "cdk destroy",
-    "deploy": "cdk deploy --require-approval never"
+    "deploy": "cdk deploy --require-approval never --all"
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",
