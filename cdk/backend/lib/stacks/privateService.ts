@@ -27,6 +27,13 @@ export class TetrisPrivateService extends cdk.Stack {
     )
 
     const vpc = ec2.Vpc.fromLookup(this, "PrivateServiceVpc", { vpcId: process.env.PRIVATE_SERVICE_VPC_ID });
+
+    const privateServiceSecurityGroup = new ec2.SecurityGroup(this, "PrivateServiceSecurityGroup", {
+      vpc, 
+      allowAllOutbound: true
+    })
+
+    privateServiceSecurityGroup.addIngressRule(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(8080))
     
     const privateApiService = new EcsFargateService(this, "PrivateServiceApi", {
       containerRepo: containerRepository,
@@ -48,7 +55,11 @@ export class TetrisPrivateService extends cdk.Stack {
           JWT_SECRET: process.env.JWT_SECRET as string
         }
       },
-      fargateService: {}
+      fargateService: {
+        securityGroups: [
+          privateServiceSecurityGroup
+        ]
+      }
     })
 
     const networkLoadBalancer = new elbv2.NetworkLoadBalancer(this, 'PrivateServiceNLB', { vpc });
