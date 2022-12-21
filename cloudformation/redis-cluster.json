@@ -1,9 +1,9 @@
 {
   "Resources": {
-    "SecurityGroupForPublicServiceVpc": {
+    "SecurityGroupForPublicServiceVpcAndPrivateServiceVpc": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "security group for only allow ip from public service vpc connect to redis cluster",
+        "GroupDescription": "security group for only allow ip from public service and private service vpc connect to redis cluster",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
@@ -47,7 +47,7 @@
         },
         "VpcSecurityGroupIds": [
           {
-            "Ref": "SecurityGroupForPublicServiceVpc"
+            "Ref": "SecurityGroupForPublicServiceVpcAndPrivateServiceVpc"
           }
         ]
       }

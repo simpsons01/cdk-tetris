@@ -557,6 +557,16 @@
         }
       }
     },
+    "PublicServiceSubnet3": {
+      "Value": {
+        "Ref": "PublicServiceSubnet3"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${AWS::StackName}-PublicServiceSubnet3Id"
+        }
+      }
+    },
     "RedisClusterVPC": {
       "Value": {
         "Ref": "RedisClusterVPC"

@@ -112,7 +112,7 @@ export class TetrisPublicService extends cdk.Stack {
       vpc,
       container: {
         name: connectServiceContainerName,
-        imageTag: `${connectServiceContainerName}_v1.0`,
+        imageTag: `${connectServiceContainerName}_v1.2`,
         taskDef: {
           memoryLimitMiB: 512,
           cpu: 256,
@@ -124,8 +124,6 @@ export class TetrisPublicService extends cdk.Stack {
         environment: {
           ALLOW_ORIGIN: `https://www.old-school-tetris-battle.com`,  
           DOMAIN: ".old-school-tetris-battle.com",
-          REDIS_HOST_URL: cdk.Fn.importValue("TetrisRedisCluster-RedisClusterAddress"),
-          REDIS_HOST_PORT:"6379",
           PRIVATE_API_URL: `http://${cdk.Fn.split(":", cdk.Fn.select(0, interfaceVpcEndPoint.vpcEndpointDnsEntries), 2)[1]}`
         }
       },
