@@ -1,19 +1,25 @@
 {
   "Resources": {
-    "SecurityGroupForRedisCluster": {
+    "SecurityGroupForPublicServiceVpc": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "security group for redis cluster",
+        "GroupDescription": "security group for only allow ip from public service vpc connect to redis cluster",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
             "CidrIp": "10.0.0.0/16",
             "ToPort": 6379,
             "FromPort": 6379
+          },
+          {
+            "IpProtocol": "tcp",
+            "CidrIp": "10.1.0.0/16",
+            "ToPort": 6379,
+            "FromPort": 6379
           }
         ],
         "VpcId": {
-          "Fn::ImportValue": "TetrisVpc-VpcId"
+          "Fn::ImportValue": "TetrisVpc-RedisClusterVpcId"
         }
       }
     },
@@ -24,7 +30,7 @@
         "Description": "subnet group for redis cluster",
         "SubnetIds": [
           {
-            "Fn::ImportValue": "TetrisVpc-PrivateSubnet1Id"
+            "Fn::ImportValue": "TetrisVpc-RedisClusterSubnet1Id"
           }
         ]
       }
@@ -41,7 +47,7 @@
         },
         "VpcSecurityGroupIds": [
           {
-            "Ref": "SecurityGroupForRedisCluster"
+            "Ref": "SecurityGroupForPublicServiceVpc"
           }
         ]
       }
