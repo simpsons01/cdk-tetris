@@ -30,7 +30,24 @@
         "EnableDnsSupport": true
       }
     },
-    "PrivateServiceVpcInterfaceEndpointForEcr": {
+    "SecurityGroupForPrivateServiceVpcInterfaceEndpointForEcrDkr": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "security group for only allow ip from private service to enter vpc ecr/dkr and ecr/api interface endpoint",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 0,
+            "ToPort": 65535,
+            "CidrIp": "10.1.0.0/16"
+          }
+        ],
+        "VpcId": {
+          "Ref": "PrivateServiceVPC"
+        }
+      }
+    },
+    "PrivateServiceVpcInterfaceEndpointForEcrDkr": {
       "Type" : "AWS::EC2::VPCEndpoint",
       "Properties" : {
         "PrivateDnsEnabled" : true,
@@ -40,6 +57,31 @@
           { "Ref": "PrivateServiceSubnet2" }
         ],
         "VpcEndpointType" : "Interface",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupForPrivateServiceVpcInterfaceEndpointForEcrDkr"
+          }
+        ],
+        "VpcId" : {
+          "Ref": "PrivateServiceVPC"
+        }
+      }
+    },
+    "PrivateServiceVpcInterfaceEndpointForEcrApi": {
+      "Type" : "AWS::EC2::VPCEndpoint",
+      "Properties" : {
+        "PrivateDnsEnabled" : true,
+        "ServiceName" : "com.amazonaws.ap-northeast-1.ecr.api",
+        "SubnetIds" : [ 
+          { "Ref": "PrivateServiceSubnet1" },
+          { "Ref": "PrivateServiceSubnet2" }
+        ],
+        "VpcEndpointType" : "Interface",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupForPrivateServiceVpcInterfaceEndpointForEcrDkr"
+          }
+        ],
         "VpcId" : {
           "Ref": "PrivateServiceVPC"
         }

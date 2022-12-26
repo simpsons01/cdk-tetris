@@ -112,7 +112,7 @@ export class TetrisPublicService extends cdk.Stack {
       vpc,
       container: {
         name: connectServiceContainerName,
-        imageTag: `${connectServiceContainerName}_v1.21`,
+        imageTag: `${connectServiceContainerName}_v1.0`,
         taskDef: {
           memoryLimitMiB: 512,
           cpu: 256,
