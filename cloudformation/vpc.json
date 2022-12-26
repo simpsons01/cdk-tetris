@@ -25,21 +25,99 @@
     "PrivateServiceVPC": {
       "Type": "AWS::EC2::VPC",
       "Properties": {
-        "CidrBlock": "10.1.0.0/16"
+        "CidrBlock": "10.1.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true
       }
     },
-    "PrivateServiceInternetGateway": {
-      "Type": "AWS::EC2::InternetGateway",
-      "Properties": {}
-    },
-    "PrivateServiceGatewayToInternet": {
-      "Type": "AWS::EC2::VPCGatewayAttachment",
+    "SecurityGroupForPrivateServiceVpcInterfaceEndpoint": {
+      "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
+        "GroupDescription": "security group for only allow ip from private service to enter vpc interface endpoint",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 0,
+            "ToPort": 65535,
+            "CidrIp": "10.1.0.0/16"
+          }
+        ],
         "VpcId": {
           "Ref": "PrivateServiceVPC"
-        },
-        "InternetGatewayId": {
-          "Ref": "PrivateServiceInternetGateway"
+        }
+      }
+    },
+    "PrivateServiceVpcInterfaceEndpointForEcrDkr": {
+      "Type" : "AWS::EC2::VPCEndpoint",
+      "Properties" : {
+        "PrivateDnsEnabled" : true,
+        "ServiceName" : "com.amazonaws.ap-northeast-1.ecr.dkr",
+        "SubnetIds" : [ 
+          { "Ref": "PrivateServiceSubnet1" },
+          { "Ref": "PrivateServiceSubnet2" }
+        ],
+        "VpcEndpointType" : "Interface",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupForPrivateServiceVpcInterfaceEndpoint"
+          }
+        ],
+        "VpcId" : {
+          "Ref": "PrivateServiceVPC"
+        }
+      }
+    },
+    "PrivateServiceVpcInterfaceEndpointForEcrApi": {
+      "Type" : "AWS::EC2::VPCEndpoint",
+      "Properties" : {
+        "PrivateDnsEnabled" : true,
+        "ServiceName" : "com.amazonaws.ap-northeast-1.ecr.api",
+        "SubnetIds" : [ 
+          { "Ref": "PrivateServiceSubnet1" },
+          { "Ref": "PrivateServiceSubnet2" }
+        ],
+        "VpcEndpointType" : "Interface",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupForPrivateServiceVpcInterfaceEndpoint"
+          }
+        ],
+        "VpcId" : {
+          "Ref": "PrivateServiceVPC"
+        }
+      }
+    },
+    "PrivateServiceVpcInterfaceEndpointForCloudwatch": {
+      "Type" : "AWS::EC2::VPCEndpoint",
+      "Properties" : {
+        "PrivateDnsEnabled" : true,
+        "ServiceName" : "com.amazonaws.ap-northeast-1.logs",
+        "SubnetIds" : [ 
+          { "Ref": "PrivateServiceSubnet1" },
+          { "Ref": "PrivateServiceSubnet2" }
+        ],
+        "VpcEndpointType" : "Interface",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupForPrivateServiceVpcInterfaceEndpoint"
+          }
+        ],
+        "VpcId" : {
+          "Ref": "PrivateServiceVPC"
+        }
+      }
+    },
+    "PrivateServiceVpcGatewayEndpointForS3": {
+      "Type" : "AWS::EC2::VPCEndpoint",
+      "Properties" : {
+        "ServiceName" : "com.amazonaws.ap-northeast-1.s3",
+        "RouteTableIds": [
+          { "Ref": "PrivateServiceSubnet1RouteTable" },
+          { "Ref": "PrivateServiceSubnet2RouteTable" }
+        ],
+        "VpcEndpointType" : "Gateway",
+        "VpcId" : {
+          "Ref": "PrivateServiceVPC"
         }
       }
     },
@@ -62,18 +140,6 @@
       }
     },
     "RouteRule1ForPrivateServiceSubnet1RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet1RouteTable"
-        },
-        "DestinationCidrBlock": "0.0.0.0/0",
-        "GatewayId": {
-          "Ref": "PrivateServiceInternetGateway"
-        }
-      }
-    },
-    "RouteRule2ForPrivateServiceSubnet1RouteTable": {
       "Type": "AWS::EC2::Route",
       "Properties": {
         "RouteTableId": {
@@ -103,24 +169,7 @@
           "Ref": "PrivateServiceVPC"
         },
         "CidrBlock": "10.1.2.0/24",
-        "AvailabilityZone": "ap-northeast-1a"
-      }
-    },
-    "NatGatewayPublicIPForPrivateServiceSubnet2": {
-      "Type": "AWS::EC2::EIP",
-      "Properties": {
-        "Domain": "vpc"
-      }
-    },
-    "NatGatewayForPrivateServiceSubnet2": {
-      "Type": "AWS::EC2::NatGateway",
-      "Properties": {
-        "AllocationId": { 
-          "Fn::GetAtt": ["NatGatewayPublicIPForPrivateServiceSubnet2", "AllocationId"] 
-        },
-        "SubnetId": { 
-          "Ref": "PrivateServiceSubnet1" 
-        }
+        "AvailabilityZone": "ap-northeast-1c"
       }
     },
     "PrivateServiceSubnet2RouteTable": {
@@ -143,18 +192,6 @@
         }
       }
     },
-    "RouteRule2ForPrivateServiceSubnet2RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId" : { 
-          "Ref" : "PrivateServiceSubnet2RouteTable" 
-        },
-        "DestinationCidrBlock" : "0.0.0.0/0",
-        "NatGatewayId" : { 
-          "Ref" : "NatGatewayForPrivateServiceSubnet2" 
-        }
-      }
-    },
     "PrivateServiceSubnet2RouteTableAssociation": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
@@ -163,129 +200,6 @@
         },
         "RouteTableId": {
           "Ref": "PrivateServiceSubnet2RouteTable"
-        }
-      }
-    },
-    "PrivateServiceSubnet3": {
-      "Type": "AWS::EC2::Subnet",
-      "Properties": {
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        },
-        "CidrBlock": "10.1.3.0/24",
-        "AvailabilityZone": "ap-northeast-1c"
-      }
-    },
-    "PrivateServiceSubnet3RouteTable": {
-      "Type": "AWS::EC2::RouteTable",
-      "Properties": {
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "RouteRule1ForPrivateServiceSubnet3RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet3RouteTable"
-        },
-        "DestinationCidrBlock": "0.0.0.0/0",
-        "GatewayId": {
-          "Ref": "PrivateServiceInternetGateway"
-        }
-      }
-    },
-    "RouteRule2ForPrivateServiceSubnet3RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet3RouteTable"
-        },
-        "DestinationCidrBlock": "10.2.0.0/16",
-        "VpcPeeringConnectionId": {
-          "Ref": "VPCPeeringConnectionRedisClusterVpcBetweenPrivateServiceVpc"
-        }
-      }
-    },
-    "PrivateServiceSubnet3RouteTableAssociation": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-        "SubnetId": {
-          "Ref": "PrivateServiceSubnet3"
-        },
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet3RouteTable"
-        }
-      }
-    },
-    "PrivateServiceSubnet4": {
-      "Type": "AWS::EC2::Subnet",
-      "Properties": {
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        },
-        "CidrBlock": "10.1.4.0/24",
-        "AvailabilityZone": "ap-northeast-1c"
-      }
-    },
-    "NatGatewayPublicIPForPrivateServiceSubnet4": {
-      "Type": "AWS::EC2::EIP",
-      "Properties": {
-        "Domain": "vpc"
-      }
-    },
-    "NatGatewayForPrivateServiceSubnet4": {
-      "Type": "AWS::EC2::NatGateway",
-      "Properties": {
-        "AllocationId": { 
-          "Fn::GetAtt": ["NatGatewayPublicIPForPrivateServiceSubnet4", "AllocationId"] 
-        },
-        "SubnetId": { 
-          "Ref": "PrivateServiceSubnet3" 
-        }
-      }
-    },
-    "PrivateServiceSubnet4RouteTable": {
-      "Type": "AWS::EC2::RouteTable",
-      "Properties": {
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "RouteRule1ForPrivateServiceSubnet4RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet4RouteTable"
-        },
-        "DestinationCidrBlock": "10.2.0.0/16",
-        "VpcPeeringConnectionId": {
-          "Ref": "VPCPeeringConnectionRedisClusterVpcBetweenPrivateServiceVpc"
-        }
-      }
-    },
-    "RouteRule2ForPrivateServiceSubnet4RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId" : { 
-          "Ref" : "PrivateServiceSubnet4RouteTable" 
-        },
-        "DestinationCidrBlock" : "0.0.0.0/0",
-        "NatGatewayId" : { 
-          "Ref" : "NatGatewayForPrivateServiceSubnet4" 
-        }
-      }
-    },
-    "PrivateServiceSubnet4RouteTableAssociation": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-        "SubnetId": {
-          "Ref": "PrivateServiceSubnet4"
-        },
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet4RouteTable"
         }
       }
     },
@@ -507,26 +421,6 @@
         }
       }
     },
-    "PrivateServiceSubnet3": {
-      "Value": {
-        "Ref": "PrivateServiceSubnet3"
-      },
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-PrivateServiceSubnet3Id"
-        }
-      }
-    },
-    "PrivateServiceSubnet4": {
-      "Value": {
-        "Ref": "PrivateServiceSubnet4"
-      },
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-PrivateServiceSubnet4Id"
-        }
-      }
-    },
     "PublicServiceVPC": {
       "Value": {
         "Ref": "PublicServiceVPC"
@@ -554,16 +448,6 @@
       "Export": {
         "Name": {
           "Fn::Sub": "${AWS::StackName}-PublicServiceSubnet2Id"
-        }
-      }
-    },
-    "PublicServiceSubnet3": {
-      "Value": {
-        "Ref": "PublicServiceSubnet3"
-      },
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-PublicServiceSubnet3Id"
         }
       }
     },

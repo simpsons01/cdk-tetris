@@ -7,15 +7,15 @@
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
-            "CidrIp": "10.0.0.0/16",
             "ToPort": 6379,
-            "FromPort": 6379
+            "FromPort": 6379,
+            "CidrIp": "10.0.0.0/16"
           },
           {
             "IpProtocol": "tcp",
-            "CidrIp": "10.1.0.0/16",
             "ToPort": 6379,
-            "FromPort": 6379
+            "FromPort": 6379,
+            "CidrIp": "10.1.0.0/16"
           }
         ],
         "VpcId": {
