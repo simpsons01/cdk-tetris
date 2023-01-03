@@ -4,19 +4,18 @@ import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import { Construct } from "constructs";
-import EcsFargateService from "../components/EcsFargateService";
+import EcsFargateService from "./components/EcsFargateService";
 
 const apiServiceContainerName = "public_api_service"
 
 const connectServiceContainerName = "connect_service"
 
-interface TetrisPublicServiceProps extends cdk.StackProps {
-  vpcEndPointServiceName: string
+interface TetrisBackendProps extends cdk.StackProps {
 }
 
-export class TetrisPublicService extends cdk.Stack {
+export default class extends cdk.Stack {
   
-  constructor(scope: Construct, id: string, props: TetrisPublicServiceProps) {
+  constructor(scope: Construct, id: string, props: TetrisBackendProps) {
     super(scope, id, props);
 
     const containerRepository = ecr.Repository.fromRepositoryName(
@@ -34,13 +33,6 @@ export class TetrisPublicService extends cdk.Stack {
 
     interfaceVpcEndPointSecurityGroup.addIngressRule(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(80))
 
-    const interfaceVpcEndPoint = new ec2.InterfaceVpcEndpoint(this, "PublicServiceInterfaceVpcEndpoint", {
-      vpc,
-      service: new ec2.InterfaceVpcEndpointService(props.vpcEndPointServiceName, 80),
-      securityGroups: [
-        interfaceVpcEndPointSecurityGroup
-      ]
-    });
 
     const alb = new elbv2.ApplicationLoadBalancer(this, "PublicServiceALB", {
       vpc,
@@ -62,7 +54,7 @@ export class TetrisPublicService extends cdk.Stack {
       vpc,
       container: {
         name: apiServiceContainerName,
-        imageTag: `${apiServiceContainerName}_v1.0`,
+        imageTag: `${apiServiceContainerName}_v0.01`,
         taskDef: {
           memoryLimitMiB: 512,
           cpu: 256,
@@ -74,7 +66,7 @@ export class TetrisPublicService extends cdk.Stack {
         environment: {
           ALLOW_ORIGIN: `https://www.old-school-tetris-battle.com`,  
           DOMAIN: ".old-school-tetris-battle.com",
-          REDIS_HOST_URL: cdk.Fn.importValue("TetrisRedisCluster-RedisClusterAddress"),
+          REDIS_HOST_URL: cdk.Fn.importValue("TetrisCacheCluster-CacheClusterAddress"),
           REDIS_HOST_PORT:"6379",
           JWT_SECRET: process.env.JWT_SECRET as string
         }
@@ -112,7 +104,7 @@ export class TetrisPublicService extends cdk.Stack {
       vpc,
       container: {
         name: connectServiceContainerName,
-        imageTag: `${connectServiceContainerName}_v1.01`,
+        imageTag: `${connectServiceContainerName}_v0.02`,
         taskDef: {
           memoryLimitMiB: 512,
           cpu: 256,
@@ -124,7 +116,9 @@ export class TetrisPublicService extends cdk.Stack {
         environment: {
           ALLOW_ORIGIN: `https://www.old-school-tetris-battle.com`,  
           DOMAIN: ".old-school-tetris-battle.com",
-          PRIVATE_API_URL: `http://${cdk.Fn.split(":", cdk.Fn.select(0, interfaceVpcEndPoint.vpcEndpointDnsEntries), 2)[1]}`
+          REDIS_HOST_URL: cdk.Fn.importValue("TetrisCacheCluster-CacheClusterAddress"),
+          REDIS_HOST_PORT:"6379",
+          JWT_SECRET: process.env.JWT_SECRET as string
         }
       },
       fargateService: {

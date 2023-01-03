@@ -1,41 +1,38 @@
 {
   "Resources": {
-    "SecurityGroupForPublicServiceVpcAndPrivateServiceVpc": {
+    "SecurityGroup": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
-        "GroupDescription": "security group for only allow ip from public service and private service vpc connect to redis cluster",
+        "GroupDescription": "security group for only allow ip in 10.0.0.0/16 CIDR connect to cache cluster",
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
             "ToPort": 6379,
             "FromPort": 6379,
             "CidrIp": "10.0.0.0/16"
-          },
-          {
-            "IpProtocol": "tcp",
-            "ToPort": 6379,
-            "FromPort": 6379,
-            "CidrIp": "10.1.0.0/16"
           }
         ],
         "VpcId": {
-          "Fn::ImportValue": "TetrisVpc-RedisClusterVpcId"
+          "Fn::ImportValue": "TetrisVpc-VpcId"
         }
       }
     },
-    "SubnetGroupForRedisCluster": {
+    "SubnetGroupForCacheCluster": {
       "Type": "AWS::ElastiCache::SubnetGroup",
       "Properties": {
         "CacheSubnetGroupName": "redis-cluster-subnet-group",
         "Description": "subnet group for redis cluster",
         "SubnetIds": [
           {
-            "Fn::ImportValue": "TetrisVpc-RedisClusterSubnet1Id"
+            "Fn::ImportValue": "TetrisVpc-Subnet3Id"
+          },
+          {
+            "Fn::ImportValue": "TetrisVpc-Subnet4Id"
           }
         ]
       }
     },
-    "RedisCluster": {
+    "CacheCluster": {
       "Type": "AWS::ElastiCache::CacheCluster",
       "Properties": {
         "ClusterName": "tetris-redis",
@@ -43,34 +40,34 @@
         "NumCacheNodes": 1,
         "CacheNodeType": "cache.t3.micro",
         "CacheSubnetGroupName": {
-          "Ref": "SubnetGroupForRedisCluster"
+          "Ref": "SubnetGroupForCacheCluster"
         },
         "VpcSecurityGroupIds": [
           {
-            "Ref": "SecurityGroupForPublicServiceVpcAndPrivateServiceVpc"
+            "Ref": "SecurityGroup"
           }
         ]
       }
     }
   },
   "Outputs": {
-    "RedisClusterName": {
+    "CacheClusterName": {
       "Value": {
-        "Ref": "RedisCluster"
+        "Ref": "CacheCluster"
       },
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-RedisCluster"
+          "Fn::Sub": "${AWS::StackName}-CacheCluster"
         }
       }
     },
-    "RedisClusterAddress": {
+    "CacheClusterAddress": {
       "Value": {
-        "Fn::GetAtt": ["RedisCluster", "RedisEndpoint.Address"]
+        "Fn::GetAtt": ["CacheCluster", "RedisEndpoint.Address"]
       },
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-RedisClusterAddress"
+          "Fn::Sub": "${AWS::StackName}-CacheClusterAddress"
         }
       }
     }

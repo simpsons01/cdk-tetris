@@ -1,473 +1,177 @@
 {
   "Resources": {
-    "VPCPeeringConnectionRedisClusterVpcBetweenPrivateServiceVpc": {
-      "Type": "AWS::EC2::VPCPeeringConnection",
-      "Properties": {
-        "PeerVpcId": {
-          "Ref": "RedisClusterVPC"
-        },
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "VPCPeeringConnectionRedisClusterVpcBetweenPublicServiceVpc": {
-      "Type": "AWS::EC2::VPCPeeringConnection",
-      "Properties": {
-        "PeerVpcId": {
-          "Ref": "RedisClusterVPC"
-        },
-        "VpcId": {
-          "Ref": "PublicServiceVPC"
-        }
-      }
-    },
-    "PrivateServiceVPC": {
-      "Type": "AWS::EC2::VPC",
-      "Properties": {
-        "CidrBlock": "10.1.0.0/16",
-        "EnableDnsHostnames": true,
-        "EnableDnsSupport": true
-      }
-    },
-    "SecurityGroupForPrivateServiceVpcInterfaceEndpoint": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "security group for only allow ip from private service to enter vpc interface endpoint",
-        "SecurityGroupIngress": [
-          {
-            "IpProtocol": "tcp",
-            "FromPort": 0,
-            "ToPort": 65535,
-            "CidrIp": "10.1.0.0/16"
-          }
-        ],
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "PrivateServiceVpcInterfaceEndpointForEcrDkr": {
-      "Type" : "AWS::EC2::VPCEndpoint",
-      "Properties" : {
-        "PrivateDnsEnabled" : true,
-        "ServiceName" : "com.amazonaws.ap-northeast-1.ecr.dkr",
-        "SubnetIds" : [ 
-          { "Ref": "PrivateServiceSubnet1" },
-          { "Ref": "PrivateServiceSubnet2" }
-        ],
-        "VpcEndpointType" : "Interface",
-        "SecurityGroupIds": [
-          {
-            "Ref": "SecurityGroupForPrivateServiceVpcInterfaceEndpoint"
-          }
-        ],
-        "VpcId" : {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "PrivateServiceVpcInterfaceEndpointForEcrApi": {
-      "Type" : "AWS::EC2::VPCEndpoint",
-      "Properties" : {
-        "PrivateDnsEnabled" : true,
-        "ServiceName" : "com.amazonaws.ap-northeast-1.ecr.api",
-        "SubnetIds" : [ 
-          { "Ref": "PrivateServiceSubnet1" },
-          { "Ref": "PrivateServiceSubnet2" }
-        ],
-        "VpcEndpointType" : "Interface",
-        "SecurityGroupIds": [
-          {
-            "Ref": "SecurityGroupForPrivateServiceVpcInterfaceEndpoint"
-          }
-        ],
-        "VpcId" : {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "PrivateServiceVpcInterfaceEndpointForCloudwatch": {
-      "Type" : "AWS::EC2::VPCEndpoint",
-      "Properties" : {
-        "PrivateDnsEnabled" : true,
-        "ServiceName" : "com.amazonaws.ap-northeast-1.logs",
-        "SubnetIds" : [ 
-          { "Ref": "PrivateServiceSubnet1" },
-          { "Ref": "PrivateServiceSubnet2" }
-        ],
-        "VpcEndpointType" : "Interface",
-        "SecurityGroupIds": [
-          {
-            "Ref": "SecurityGroupForPrivateServiceVpcInterfaceEndpoint"
-          }
-        ],
-        "VpcId" : {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "PrivateServiceVpcGatewayEndpointForS3": {
-      "Type" : "AWS::EC2::VPCEndpoint",
-      "Properties" : {
-        "ServiceName" : "com.amazonaws.ap-northeast-1.s3",
-        "RouteTableIds": [
-          { "Ref": "PrivateServiceSubnet1RouteTable" },
-          { "Ref": "PrivateServiceSubnet2RouteTable" }
-        ],
-        "VpcEndpointType" : "Gateway",
-        "VpcId" : {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "PrivateServiceSubnet1": {
-      "Type": "AWS::EC2::Subnet",
-      "Properties": {
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        },
-        "CidrBlock": "10.1.1.0/24",
-        "AvailabilityZone": "ap-northeast-1a"
-      }
-    },
-    "PrivateServiceSubnet1RouteTable": {
-      "Type": "AWS::EC2::RouteTable",
-      "Properties": {
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "RouteRule1ForPrivateServiceSubnet1RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet1RouteTable"
-        },
-        "DestinationCidrBlock": "10.2.0.0/16",
-        "VpcPeeringConnectionId": {
-          "Ref": "VPCPeeringConnectionRedisClusterVpcBetweenPrivateServiceVpc"
-        }
-      }
-    },
-    "PrivateServiceSubnet1RouteTableAssociation": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-        "SubnetId": {
-          "Ref": "PrivateServiceSubnet1"
-        },
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet1RouteTable"
-        }
-      }
-    },
-    "PrivateServiceSubnet2": {
-      "Type": "AWS::EC2::Subnet",
-      "Properties": {
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        },
-        "CidrBlock": "10.1.2.0/24",
-        "AvailabilityZone": "ap-northeast-1c"
-      }
-    },
-    "PrivateServiceSubnet2RouteTable": {
-      "Type": "AWS::EC2::RouteTable",
-      "Properties": {
-        "VpcId": {
-          "Ref": "PrivateServiceVPC"
-        }
-      }
-    },
-    "RouteRule1ForPrivateServiceSubnet2RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet2RouteTable"
-        },
-        "DestinationCidrBlock": "10.2.0.0/16",
-        "VpcPeeringConnectionId": {
-          "Ref": "VPCPeeringConnectionRedisClusterVpcBetweenPrivateServiceVpc"
-        }
-      }
-    },
-    "PrivateServiceSubnet2RouteTableAssociation": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-        "SubnetId": {
-          "Ref": "PrivateServiceSubnet2"
-        },
-        "RouteTableId": {
-          "Ref": "PrivateServiceSubnet2RouteTable"
-        }
-      }
-    },
-    "PublicServiceVPC": {
+    "VPC": {
       "Type": "AWS::EC2::VPC",
       "Properties": {
         "CidrBlock": "10.0.0.0/16"
       }
     },
-    "PublicServiceInternetGateway": {
+    "InternetGateway": {
       "Type": "AWS::EC2::InternetGateway",
       "Properties": {}
     },
-    "PublicServiceGatewayToInternet": {
+    "GatewayToInternet": {
       "Type": "AWS::EC2::VPCGatewayAttachment",
       "Properties": {
         "VpcId": {
-          "Ref": "PublicServiceVPC"
+          "Ref": "VPC"
         },
         "InternetGatewayId": {
-          "Ref": "PublicServiceInternetGateway"
+          "Ref": "InternetGateway"
         }
       }
     },
-    "PublicServiceSubnet1": {
+    "Subnet1": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "VpcId": {
-          "Ref": "PublicServiceVPC"
+          "Ref": "VPC"
         },
         "CidrBlock": "10.0.1.0/24",
         "AvailabilityZone": "ap-northeast-1a"
       }
     },
-    "PublicServiceSubnet1RouteTable": {
+    "Subnet1RouteTable": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": {
-          "Ref": "PublicServiceVPC"
+          "Ref": "VPC"
         }
       }
     },
-    "RouteRule1ForPublicServiceSubnet1RouteTable": {
+    "RouteRule1ForSubnet1RouteTable": {
       "Type": "AWS::EC2::Route",
       "Properties": {
         "RouteTableId": {
-          "Ref": "PublicServiceSubnet1RouteTable"
+          "Ref": "Subnet1RouteTable"
         },
         "DestinationCidrBlock": "0.0.0.0/0",
         "GatewayId": {
-          "Ref": "PublicServiceInternetGateway"
+          "Ref": "InternetGateway"
         }
       }
     },
-    "RouteRule2ForPublicServiceSubnet1RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "PublicServiceSubnet1RouteTable"
-        },
-        "DestinationCidrBlock": "10.2.0.0/16",
-        "VpcPeeringConnectionId": {
-          "Ref": "VPCPeeringConnectionRedisClusterVpcBetweenPublicServiceVpc"
-        }
-      }
-    },
-    "PublicServiceSubnet1RouteTableAssociation": {
+    "Subnet1RouteTableAssociation": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
         "SubnetId": {
-          "Ref": "PublicServiceSubnet1"
+          "Ref": "Subnet1"
         },
         "RouteTableId": {
-          "Ref": "PublicServiceSubnet1RouteTable"
+          "Ref": "Subnet1RouteTable"
         }
       }
     },
-    "PublicServiceSubnet2": {
+    "Subnet2": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "VpcId": {
-          "Ref": "PublicServiceVPC"
+          "Ref": "VPC"
         },
         "CidrBlock": "10.0.2.0/24",
         "AvailabilityZone": "ap-northeast-1c"
       }
     },
-    "PublicServiceSubnet2RouteTable": {
+    "Subnet2RouteTable": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": {
-          "Ref": "PublicServiceVPC"
+          "Ref": "VPC"
         }
       }
     },
-    "RouteRule1ForPublicServiceSubnet2RouteTable": {
+    "RouteRule1ForSubnet2RouteTable": {
       "Type": "AWS::EC2::Route",
       "Properties": {
         "RouteTableId": {
-          "Ref": "PublicServiceSubnet2RouteTable"
+          "Ref": "Subnet2RouteTable"
         },
         "DestinationCidrBlock": "0.0.0.0/0",
         "GatewayId": {
-          "Ref": "PublicServiceInternetGateway"
+          "Ref": "InternetGateway"
         }
       }
     },
-    "RouteRule2ForPublicServiceSubnet2RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "PublicServiceSubnet2RouteTable"
-        },
-        "DestinationCidrBlock": "10.2.0.0/16",
-        "VpcPeeringConnectionId": {
-          "Ref": "VPCPeeringConnectionRedisClusterVpcBetweenPublicServiceVpc"
-        }
-      }
-    },
-    "PublicServiceSubnet2RouteTableAssociation": {
+    "Subnet2RouteTableAssociation": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
         "SubnetId": {
-          "Ref": "PublicServiceSubnet2"
+          "Ref": "Subnet2"
         },
         "RouteTableId": {
-          "Ref": "PublicServiceSubnet2RouteTable"
+          "Ref": "Subnet2RouteTable"
         }
       }
     },
-    "RedisClusterVPC": {
-      "Type": "AWS::EC2::VPC",
-      "Properties": {
-        "CidrBlock": "10.2.0.0/16"
-      }
-    },
-    "RedisClusterSubnet1": {
+    "Subnet3": {
       "Type": "AWS::EC2::Subnet",
       "Properties": {
         "VpcId": {
-          "Ref": "RedisClusterVPC"
+          "Ref": "VPC"
         },
-        "CidrBlock": "10.2.1.0/24",
+        "CidrBlock": "10.0.3.0/24",
         "AvailabilityZone": "ap-northeast-1a"
       }
     },
-    "RedisClusterSubnet1RouteTable": {
-      "Type": "AWS::EC2::RouteTable",
+    "Subnet4": {
+      "Type": "AWS::EC2::Subnet",
       "Properties": {
         "VpcId": {
-          "Ref": "RedisClusterVPC"
-        }
-      }
-    },
-    "RouteRule1ForRedisClusterSubnet1RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "RedisClusterSubnet1RouteTable"
+          "Ref": "VPC"
         },
-        "DestinationCidrBlock": "10.1.0.0/16",
-        "VpcPeeringConnectionId": {
-          "Ref": "VPCPeeringConnectionRedisClusterVpcBetweenPrivateServiceVpc"
-        }
-      }
-    },
-    "RouteRule2ForRedisClusterSubnet1RouteTable": {
-      "Type": "AWS::EC2::Route",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "RedisClusterSubnet1RouteTable"
-        },
-        "DestinationCidrBlock": "10.0.0.0/16",
-        "VpcPeeringConnectionId": {
-          "Ref": "VPCPeeringConnectionRedisClusterVpcBetweenPublicServiceVpc"
-        }
-      }
-    },
-    "RedisClusterSubnet1RouteTableAssociation": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-        "SubnetId": {
-          "Ref": "RedisClusterSubnet1"
-        },
-        "RouteTableId": {
-          "Ref": "RedisClusterSubnet1RouteTable"
-        }
+        "CidrBlock": "10.0.4.0/24",
+        "AvailabilityZone": "ap-northeast-1c"
       }
     }
   },
   "Outputs": {
-    "PrivateServiceVPC": {
+    "VPC": {
       "Value": {
-        "Ref": "PrivateServiceVPC"
+        "Ref": "VPC"
       },
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-PrivateServiceVpcId"
+          "Fn::Sub": "${AWS::StackName}-VpcId"
         }
       }
     },
-    "PrivateServiceSubnet1": {
+    "Subnet1": {
       "Value": {
-        "Ref": "PrivateServiceSubnet1"
+        "Ref": "Subnet1"
       },
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-PrivateServiceSubnet1Id"
+          "Fn::Sub": "${AWS::StackName}-Subnet1Id"
         }
       }
     },
-    "PrivateServiceSubnet2": {
+    "Subnet2": {
       "Value": {
-        "Ref": "PrivateServiceSubnet2"
+        "Ref": "Subnet2"
       },
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-PrivateServiceSubnet2Id"
+          "Fn::Sub": "${AWS::StackName}-Subnet2Id"
         }
       }
     },
-    "PublicServiceVPC": {
+    "Subnet3": {
       "Value": {
-        "Ref": "PublicServiceVPC"
+        "Ref": "Subnet3"
       },
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-PublicServiceVpcId"
+          "Fn::Sub": "${AWS::StackName}-Subnet3Id"
         }
       }
     },
-    "PublicServiceSubnet1": {
+    "Subnet4": {
       "Value": {
-        "Ref": "PublicServiceSubnet1"
+        "Ref": "Subnet4"
       },
       "Export": {
         "Name": {
-          "Fn::Sub": "${AWS::StackName}-PublicServiceSubnet1Id"
-        }
-      }
-    },
-    "PublicServiceSubnet2": {
-      "Value": {
-        "Ref": "PublicServiceSubnet2"
-      },
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-PublicServiceSubnet2Id"
-        }
-      }
-    },
-    "RedisClusterVPC": {
-      "Value": {
-        "Ref": "RedisClusterVPC"
-      },
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-RedisClusterVpcId"
-        }
-      }
-    },
-    "RedisClusterSubnet1": {
-      "Value": {
-        "Ref": "RedisClusterSubnet1"
-      },
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}-RedisClusterSubnet1Id"
+          "Fn::Sub": "${AWS::StackName}-Subnet4Id"
         }
       }
     }
