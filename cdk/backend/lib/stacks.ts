@@ -104,7 +104,7 @@ export default class extends cdk.Stack {
       vpc,
       container: {
         name: connectServiceContainerName,
-        imageTag: `${connectServiceContainerName}_v0.03`,
+        imageTag: `${connectServiceContainerName}_v0.04`,
         taskDef: {
           memoryLimitMiB: 512,
           cpu: 256,
